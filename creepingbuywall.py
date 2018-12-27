@@ -32,7 +32,8 @@ coin_pairs = list(set(coin_pairs_start))
 
 #define a few things
 avg_coin_price = {}
-coin_pairs_ticker = []
+highest_order_price = []
+
 f=0
 count_row = 0
 avg_price_start = 0
@@ -47,20 +48,23 @@ while f < len(coin_pairs):
 	for row in myresult:
 		price=row[2]
 		total=row[3]
-		avg_price_start = avg_price_start + float(row[2])
-		count_row = count_row + 1
-		avg_price = avg_price_start / count_row
+		#avg_price_start = avg_price_start + float(row[2])
+		#count_row = count_row + 1
+		#avg_price = avg_price_start / count_row
 		#avg_price_start.append(row[2])
 		#for c in avg_price_start:
 		#	print (avg_price_start)
+		highest_order_price.append(price)
+	avg_price = max(highest_order_price)	
 
-	coin_pairs_ticker.append(coin_pairs_ticker)    
+ 
 	print(coin_pairs[f])
 	print ('avergae price: ',avg_price)    
 	avg_coin_price[coin_pairs[f]]=avg_price
 
 	count_row = 0    
 	avg_price_start = 0
+	highest_order_price.clear()
 	f = f +1    
 
 print(avg_coin_price)
@@ -68,7 +72,7 @@ print(avg_coin_price)
 #coin_pairs_ticker = list(set(coin_pairs_ticker))
 
 
-limit = '10%'
+limit = '4%'
 f = 0
 coins_with_buy_walls = {}
 coins_with_creeping_buy_walls =[]
@@ -90,6 +94,7 @@ while f < len(coin_pairs):
 		i = i + 1
 		sum_bids.append(sum_array)
 
+
 	total_bids = sum(sum_bids)	
 	if total_bids == 0:
 		total_bids = 1
@@ -100,6 +105,7 @@ while f < len(coin_pairs):
 
 	average_bid = total_bids / length_sum_bids
 
+
 	#if an order is 10 times larger than the average bid 
 	threshhold = average_bid * 10
 
@@ -108,17 +114,21 @@ while f < len(coin_pairs):
 		var_element_check = (bids[g])
 		sum_array_check = var_element_check[0] * var_element_check[1]
 		volume_threshold = sum_array_check / volume
+		in_key_avg_price = avg_coin_price.get(coin_pairs[f])
+		calc = float(in_key_avg_price) * 1.03
 		#number below is total order size divded by total volume and if its below 0.037 it should be a large order 
-		if sum_array_check > threshhold and volume_threshold < 0.037:
+		if sum_array_check > threshhold and volume_threshold < 0.037 and var_element_check[0] > calc:
 
 			#check if theres creeping buy orders 
-			in_key_avg_price = avg_coin_price.get(coin_pairs[f])
-			# the value 1.03 is 3% above the last buy order price 
-			if (var_element_check[0] * 1.03) > in_key_avg_price:
+			
+		
 
-				print("Creeping Buy order present")
-				print(coin_pairs[f])
-				coins_with_creeping_buy_walls.append(coin_pairs[f])
+			print (var_element_check[0])
+			print (var_element_check[1])
+			print (in_key_avg_price)
+			print("Creeping Buy order present")
+			print(coin_pairs[f])
+			coins_with_creeping_buy_walls.append(coin_pairs[f])
 
 			
 
@@ -127,20 +137,12 @@ while f < len(coin_pairs):
 
 
 
-			above_average_count = above_average_count + 1
+			
 
 		g = g + 1
 
 	
-	if above_average_count >= 1:
-		coins_with_buy_walls[coin_pairs[f]] = above_average_count
 
-
-	
-	print ("The coin is;",coin_pairs[f])
-	print ("There are",above_average_count,"buy walls")
-	print (total_bids,"is the sum of orders")
-	print ("The average bid is",average_bid)
 	f = f + 1
 
 coins_with_creeping_buy_walls = list(set(coins_with_creeping_buy_walls))
