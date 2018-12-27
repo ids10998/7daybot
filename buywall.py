@@ -24,7 +24,7 @@ bittrex = ccxt.bittrex({
 
 markets = bittrex.load_markets()
 whichmarket = (bittrex.symbols)
-limit = '7%'
+limit = '4%'
 f = 0
 coins_with_buy_walls = {}
 size_of_above_average_buy_order = {}
@@ -69,7 +69,7 @@ while f < len(whichmarket):
 				volume = 1
 			volume_threshold = sum_array_check / volume
 			#number below is total order size divded by total volume and if its below 0.037 it should be a large order 
-			if sum_array_check > threshhold and volume_threshold < 0.037 and percentage_change < 7.5 and volume > 30:
+			if sum_array_check > threshhold and volume_threshold < 0.037 and percentage_change < 10 and volume > 30:
 
 				#find average order price and size of buywall
 
@@ -101,7 +101,7 @@ while f < len(whichmarket):
 
 
 		
-		print ("The coin is;",whichmarket[f])
+		print ("The coin is:",whichmarket[f])
 		print ("There are",above_average_count,"buy walls")
 		f = f + 1
 	except (ccxt.ExchangeError,ccxt.NetworkError,ccxt.RequestTimeout) as error:
