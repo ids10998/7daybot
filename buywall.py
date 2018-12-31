@@ -34,7 +34,7 @@ for row in myresult:
 	print (coin_score_symbol)
 	print (coin_score_database_value)
 
-mycursor.execute("TRUNCATE TABLE BUYWALLDATA3")
+#mycursor.execute("TRUNCATE TABLE BUYWALLDATA3")
 mycursor.execute("TRUNCATE TABLE coinscores")
 
 
@@ -95,7 +95,7 @@ while f < len(whichmarket):
 				volume = 1
 			volume_threshold = sum_array_check / volume
 			#number below is total order size divded by total volume and if its below 0.037 it should be a large order 
-			if sum_array_check > threshhold and volume_threshold < 0.037 and percentage_change < 10:
+			if sum_array_check > threshhold and volume_threshold < 0.037 and percentage_change < 10 and volume > 30:
 
 				#find average order price and size of buywall
 
@@ -103,7 +103,7 @@ while f < len(whichmarket):
 
 				#insert order into database
 
-				sql = "INSERT INTO BUYWALLDATA3 (COINPAIR, BUYWALLPRICE, BUYWALLSIZEINBTC, volumethreshold) VALUES (%s, %s, %s, %s)"
+				sql = "INSERT INTO BUYWALLDATA3 (COINPAIR, BUYWALLPRICE, BUYWALLSIZEINBTC, volumethreshold, datetimeofinsert) VALUES (%s, %s, %s, %s, NOW())"
 				val = [
 					(whichmarket[f], var_element_check[0], sum_array_check, volume_threshold)
 					]
@@ -113,6 +113,18 @@ while f < len(whichmarket):
 				cnx.commit()
 
 				print(mycursor.rowcount, "was inserted.")
+
+
+				#sql = "INSERT IGNORE INTO CREEPINGBUYWALL (COINPAIR, BUYWALLPRICE, BUYWALLSIZEINBTC, volumethreshold) VALUES (%s, %s, %s, %s) "
+				#val = [
+				#	(whichmarket[f], var_element_check[0], sum_array_check, volume_threshold)
+				#	]
+
+				#mycursor.executemany(sql, val)
+
+				#cnx.commit()
+
+				
 
 				
 				above_average_count = above_average_count + 1
@@ -157,13 +169,15 @@ print (coins_with_buy_walls)
 #	else:
 #		coin_score[x] = 0.3
 
+
+
 f = 0
 volume_calculation = 0
 keys = list(coins_with_buy_walls.keys())
 coin_score = {}
 #print(coin_score)				
 for key in coins_with_buy_walls.keys():
-	sql = """SELECT * FROM BUYWALLDATA3 WHERE COINPAIR = '%s' """ % (key)
+	sql = """SELECT * FROM BUYWALLDATA3 WHERE COINPAIR = '%s' AND datetimeofinsert > DATE_SUB(NOW(), INTERVAL 13 MINUTE)""" % (key)
 	rows = 0
 	mycursor.execute(sql)
 	myresult = mycursor.fetchall()
@@ -240,16 +254,16 @@ for x in old_database_coin_scores:
 	else:
 		how_big = "Medium"
 
-	if float(old_database_coin_scores[x]) < 0.4 and float(new_coin_score) > 0.74:
+	if float(old_database_coin_scores[x]) < 0.4 and float(new_coin_score) > 0.75:
 		ticker_info = bittrex.fetch_ticker(x) # ticker for a random symbol
 		last_price = ticker_info.get('last')
-		last_price = round(last_price, 2)
+		last_price = '{:.8f}'.format(last_price)
 		volume = ticker_info.get('quoteVolume')
 		percentage_change = ticker_info.get('percentage')
 		percentage_change = round(percentage_change, 2)
 		print("Alert")
 		chat_id = bot.get_updates()[-1].message.chat_id
-		bot.send_message(chat_id=chat_id, text='🐂 <b>' + str(x) + '</b>\nBittrex\nSignificant buy wall(s) has appeared\nCurrent buy wall size is: <b>' + str(how_big) + '</b>\nPercentage change: ' + str(percentage_change) +'\nLast price: ' + str(last_price), parse_mode=telegram.ParseMode.HTML)
+		bot.send_message(chat_id=chat_id, text='🐂 <b>' + str(x) + '</b>\nBittrex\nSignificant buy wall(s) has appeared\nCurrent buy wall size is: <b>' + str(how_big) + '</b>\nPercentage change: ' + str(percentage_change) +'%\nLast price: ' + str(last_price), parse_mode=telegram.ParseMode.HTML)
 
 
 	
