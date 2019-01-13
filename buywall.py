@@ -24,7 +24,7 @@ mycursor = cnx.cursor()
 old_database_coin_scores ={}
 
 #sql = """SELECT * FROM coinscores """
-mycursor.execute("SELECT * FROM coinscores")
+mycursor.execute("SELECT * FROM coinscores WHERE datetimeofinsert > DATE_SUB(NOW(), INTERVAL 13 MINUTE)")
 myresult = mycursor.fetchall()
 cnx.commit()
 for row in myresult:
@@ -35,7 +35,7 @@ for row in myresult:
 	print (coin_score_database_value)
 
 #mycursor.execute("TRUNCATE TABLE BUYWALLDATA3")
-mycursor.execute("TRUNCATE TABLE coinscores")
+#mycursor.execute("TRUNCATE TABLE coinscores")
 
 
 bittrex = ccxt.bittrex({
@@ -85,7 +85,7 @@ while f < len(whichmarket):
 		average_bid = total_bids / length_sum_bids
 
 		#if an order is 10 times larger than the average bid 
-		threshhold = average_bid * 10
+		threshhold = average_bid * 3
 
 		#check to see any above average buy orders 
 		while g < len(bids):
@@ -95,7 +95,7 @@ while f < len(whichmarket):
 				volume = 1
 			volume_threshold = sum_array_check / volume
 			#number below is total order size divded by total volume and if its below 0.037 it should be a large order 
-			if sum_array_check > threshhold and volume_threshold < 0.037 and percentage_change < 10 and volume > 30:
+			if sum_array_check > threshhold and volume_threshold < 0.037 and percentage_change < 10 and volume > 15:
 
 				#find average order price and size of buywall
 
@@ -244,8 +244,9 @@ print (coin_score)
 #		print (old_coin_score_database_value)
 #		old_database_coin_scores[key1] = old_coin_score_database_value
 
-bot = telegram.Bot('688361182:AAGJTUu6PV4mjcKlSgtyZ52w-8B-uwJBUS0')
+bot = telegram.Bot('796174401:AAFg0imveWhaQMykjB6Y8C4R9Fw-nvm4gMw')
 print(old_database_coin_scores)
+
 
 for x in old_database_coin_scores:
 	new_coin_score = coin_score.get(x)
@@ -253,8 +254,8 @@ for x in old_database_coin_scores:
 		how_big = "Large"
 	else:
 		how_big = "Medium"
-
-	if float(old_database_coin_scores[x]) < 0.4 and float(new_coin_score) > 0.75:
+	
+	if float(old_database_coin_scores[x]) < 0.2 and float(new_coin_score) > 0.75:
 		ticker_info = bittrex.fetch_ticker(x) # ticker for a random symbol
 		last_price = ticker_info.get('last')
 		last_price = '{:.8f}'.format(last_price)
@@ -267,18 +268,12 @@ for x in old_database_coin_scores:
 
 
 	
-	
-		
-
-
-	
-
 
 keys1 = list(coin_score.keys())
 
 for a in coin_score:
 	coin_final_score = coin_score[a]
-	sql5 = "INSERT INTO coinscores (symbol, score) VALUES (%s, %s)"				
+	sql5 = "INSERT INTO coinscores (symbol, score, datetimeofinsert) VALUES (%s, %s, NOW())"				
 	val5 = [(a, coin_final_score)]
 	mycursor.executemany(sql5, val5)
 	cnx.commit()
