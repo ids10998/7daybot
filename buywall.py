@@ -6,6 +6,7 @@ import sys
 import time
 import logging
 import telegram
+import statistics
 
 
 
@@ -44,7 +45,7 @@ bittrex = ccxt.bittrex({
 
 markets = bittrex.load_markets()
 whichmarket = (bittrex.symbols)
-list_to_remove = ["BTC/USD","ETH/USDT","XRP/USDT","XRP/BTC","LTC/BTC","BTC/USDT","ETH/BTC","TUSD/BTC","ETH/USD"]
+list_to_remove = ["BTC/USD","ETH/USDT","XRP/USDT","XRP/BTC","LTC/BTC","BTC/USDT","ETH/BTC","TUSD/BTC","ETH/USD","LTC/ETH","LTC/USDT","BCH/ETH","BCH/USDT","BCH/USD","XRP/ETH","LTC/USD","BCH/BTC","USDT/USD"]
 whichmarket= list(set(whichmarket).difference(set(list_to_remove)))
 limit = '4%'
 f = 0
@@ -74,7 +75,7 @@ while f < len(whichmarket):
 			i = i + 1
 			sum_bids.append(sum_array)
 
-		total_bids = sum(sum_bids)	
+		total_bids = sum(sum_bids) 
 		if total_bids == 0:
 			total_bids = 1
 		length_sum_bids = len(sum_bids)
@@ -95,7 +96,7 @@ while f < len(whichmarket):
 				volume = 1
 			volume_threshold = sum_array_check / volume
 			#number below is total order size divded by total volume and if its below 0.037 it should be a large order 
-			if sum_array_check > threshhold and volume_threshold < 0.037 and percentage_change < 10 and volume > 15:
+			if sum_array_check > threshhold and volume_threshold > 0.07 and percentage_change < 10 and volume > 10:
 
 				#find average order price and size of buywall
 
@@ -170,7 +171,7 @@ print (coins_with_buy_walls)
 #		coin_score[x] = 0.3
 
 
-
+coin_volume_calculation = []
 f = 0
 volume_calculation = 0
 keys = list(coins_with_buy_walls.keys())
@@ -187,18 +188,28 @@ for key in coins_with_buy_walls.keys():
 		ticker = row[1]
 		coin_price = row[2]
 		size_order = row[3]
-		volume_calculation = row[4]
-		volume_calculation = row[4] + volume_calculation
+		coin_volume_calculation.append(row[4])
+		#volume_calculation = row[4]
+		#volume_calculation = float(row[4]) + float(volume_calculation)
+
+	#rint (coin_volume_calculation)
+	#volume_calculation = float(sum(coin_volume_calculation)) / float(len(coin_volume_calculation))
+	new_l = list(map(float, coin_volume_calculation))
+	volume_calculation = statistics.mean(new_l)
 
 	if rows == 0:
 		rows = 1	
-
+	print(volume_calculation)
 	volume_calculation = volume_calculation / rows
 	print(volume_calculation)
+	coin_volume_calculation.clear()
+	new_l.clear()
 
-	if volume_calculation <= 0.02:
+	if volume_calculation >= 1.99:
+		coin_score[key] = 10
+	elif 1.99 > volume_calculation >= 0.12:
 		coin_score[key] = 1
-	elif 0.03 >= volume_calculation > 0.02:
+	elif 0.12 > volume_calculation <= 0.095:
 		coin_score[key] = 0.75
 	else:
 		coin_score[key] = 0.3
@@ -262,9 +273,9 @@ for x in old_database_coin_scores:
 		volume = ticker_info.get('quoteVolume')
 		percentage_change = ticker_info.get('percentage')
 		percentage_change = round(percentage_change, 2)
-		print("Alert")
-		chat_id = bot.get_updates()[-1].message.chat_id
-		bot.send_message(chat_id=chat_id, text='🐂 <b>' + str(x) + '</b>\nBittrex\nSignificant buy wall(s) has appeared\nCurrent buy wall size is: <b>' + str(how_big) + '</b>\nPercentage change: ' + str(percentage_change) +'%\nLast price: ' + str(last_price), parse_mode=telegram.ParseMode.HTML)
+		#print("Alert")
+		#chat_id = bot.get_updates()[-1].message.chat_id
+		#bot.send_message(chat_id=chat_id, text='🐂 <b>' + str(x) + '</b>\nBittrex\nSignificant buy wall(s) has appeared\nCurrent buy wall size is: <b>' + str(how_big) + '</b>\nPercentage change: ' + str(percentage_change) +'%\nLast price: ' + str(last_price), parse_mode=telegram.ParseMode.HTML)
 
 
 	

@@ -20,7 +20,7 @@ markets = bittrex.load_markets()
 whichmarket = (bittrex.symbols)
 
 yesterday_date = str(date.today() - timedelta(1))
-today_date = str(date.today())
+today_date = str(date.today() + timedelta(1))
 
 coin_senntiment = {}
 

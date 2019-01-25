@@ -12,7 +12,7 @@ bittrex = ccxt.bittrex({
 markets = bittrex.load_markets()
 whichmarket = (bittrex.symbols)
 
-bot = telegram.Bot('688361182:AAGJTUu6PV4mjcKlSgtyZ52w-8B-uwJBUS0')
+bot = telegram.Bot('796174401:AAFg0imveWhaQMykjB6Y8C4R9Fw-nvm4gMw')
 
 cnx = mysql.connector.connect(user='root', password='Mumina12!23',
 							  host='localhost', database='coinbuys',
@@ -25,7 +25,7 @@ coin_pairs_start = []
 #get a list of coins that have buy walls
 
 
-sql1 = """SELECT * FROM BUYWALLDATA3 WHERE datetimeofinsert < DATE_SUB(NOW(), INTERVAL 4 HOUR)"""
+sql1 = """SELECT * FROM BUYWALLDATA3 WHERE datetimeofinsert < DATE_SUB(NOW(), INTERVAL 3 HOUR)"""
 mycursor.execute(sql1)
 myresult = mycursor.fetchall()
 for row in myresult:
@@ -45,8 +45,12 @@ avg_price = 0
 price = 0
 #avg_price_start =[]
 
+
+
 while f < len(coin_pairs):
-	sql = """SELECT * FROM BUYWALLDATA3 WHERE datetimeofinsert < DATE_SUB(NOW(), INTERVAL 4 HOUR) AND COINPAIR = '%s' """ % (coin_pairs[f])
+
+
+	sql = """SELECT * FROM BUYWALLDATA3 WHERE datetimeofinsert < DATE_SUB(NOW(), INTERVAL 3 HOUR) AND COINPAIR = '%s' """ % (coin_pairs[f])
 	mycursor.execute(sql)
 	myresult = mycursor.fetchall()
 	for row in myresult:
@@ -60,7 +64,7 @@ while f < len(coin_pairs):
 		#for c in avg_price_start:
 		#	print (avg_price_start)
 		highest_order_price.append(price)
-		query = """DELETE FROM BUYWALLDATA3 WHERE id = %s""" % (id_row)
+		query = """DELETE FROM BUYWALLDATA3 WHERE COINPAIR = '%s' """ % (coin_pairs[f])
 		mycursor.execute(query)
 		cnx.commit()
 	avg_price = max(highest_order_price)	
@@ -115,12 +119,14 @@ while f < len(coin_pairs):
 
 
 	#if an order is 10 times larger than the average bid 
-	threshhold = average_bid * 10
+	threshhold = average_bid * 5
 
 	#check to see any above average buy orders 
 	while g < len(bids):
 		var_element_check = (bids[g])
 		sum_array_check = var_element_check[0] * var_element_check[1]
+		if volume == 0:
+			volume = 1
 		volume_threshold = sum_array_check / volume
 		in_key_avg_price = avg_coin_price.get(coin_pairs[f])
 		calc = float(in_key_avg_price) * 1.03
@@ -145,8 +151,14 @@ while f < len(coin_pairs):
 			percentage_change = ticker_info.get('percentage')
 			percentage_change = round(percentage_change, 2)
 			print("Alert")
-			chat_id = bot.get_updates()[-1].message.chat_id
-			bot.send_message(chat_id=chat_id, text='🐂 <b>' + str(coin_pairs[f]) + '</b>\nBittrex\nCreeping buy wall(s) present.\nPrice is being artificially increased.\nPercentage change: ' + str(percentage_change) +'%\nLast price: ' + str(last_price), parse_mode=telegram.ParseMode.HTML)
+			creepingscore = 0.65
+			#chat_id = bot.get_updates()[-1].message.chat_id
+			#bot.send_message(chat_id=chat_id, text='🐂 <b>' + str(coin_pairs[f]) + '</b>\nBittrex\nCreeping buy wall(s) present.\nPrice is being artificially increased.\nPercentage change: ' + str(percentage_change) +'%\nLast price: ' + str(last_price), parse_mode=telegram.ParseMode.HTML)
+			sql5 = "INSERT INTO creepingcoinscores (symbol, score, datetimeofinsert) VALUES (%s, %s, NOW())"				
+			val5 = [(coin_pairs[f], creepingscore)]
+			mycursor.executemany(sql5, val5)
+			cnx.commit()
+			print(mycursor.rowcount, "creeping was inserted.")
 
 			
 
