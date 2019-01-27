@@ -45,7 +45,18 @@ bittrex = ccxt.bittrex({
 
 markets = bittrex.load_markets()
 whichmarket = (bittrex.symbols)
+
 list_to_remove = ["BTC/USD","ETH/USDT","XRP/USDT","XRP/BTC","LTC/BTC","BTC/USDT","ETH/BTC","TUSD/BTC","ETH/USD","LTC/ETH","LTC/USDT","BCH/ETH","BCH/USDT","BCH/USD","XRP/ETH","LTC/USD","BCH/BTC","USDT/USD"]
+
+
+for x in whichmarket:
+	second_word = x.split('/')[1]
+	if second_word == 'ETH' or second_word == 'USDT' or second_word == 'USD':
+		list_to_remove.append(x)
+
+
+
+
 whichmarket= list(set(whichmarket).difference(set(list_to_remove)))
 limit = '4%'
 f = 0
@@ -95,6 +106,7 @@ while f < len(whichmarket):
 			if volume == 0:
 				volume = 1
 			volume_threshold = sum_array_check / volume
+
 			#number below is total order size divded by total volume and if its below 0.037 it should be a large order 
 			if sum_array_check > threshhold and volume_threshold > 0.07 and percentage_change < 10 and volume > 10:
 
